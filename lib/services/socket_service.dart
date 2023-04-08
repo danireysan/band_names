@@ -16,16 +16,27 @@ class SocketService with ChangeNotifier {
   }
 
   void _initConfig() {
-    // Dart client
+    // Dart client config
     io.Socket socket = io.io('http://192.168.100.31:3000/', {
       'transports': ['websocket'],
       'autoConnect': true,
     });
+    _onConnect(socket);
+    _onDisconnect(socket);
+    socket.on('new-message', (payload) {
+      log('new message: $payload');
+    });
+  }
+
+  void _onConnect(io.Socket socket) {
     socket.onConnect((_) {
       log('connect');
       _serverStatus = ServerStatus.online;
       notifyListeners();
     });
+  }
+
+  void _onDisconnect(io.Socket socket) {
     socket.onDisconnect((_) {
       log('disconect');
       _serverStatus = ServerStatus.offline;
