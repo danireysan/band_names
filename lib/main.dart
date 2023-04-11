@@ -19,7 +19,7 @@ class MainApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: 'status',
+        initialRoute: 'home',
         routes: {
           'home': (_) => const HomePage(),
           'status': (_) => const StatusPage(),

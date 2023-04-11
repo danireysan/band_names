@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +11,7 @@ class StatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final socketService = Provider.of<SocketService>(context);
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -20,6 +23,17 @@ class StatusPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          log('button pressed');
+          socketService.emit(
+            'emit-message',
+            {'name': 'Flutter', 'message': 'hi from flutter'},
+          );
+        },
+        elevation: 1,
+        child: const Icon(Icons.message),
       ),
     );
   }
