@@ -104,8 +104,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       onDismissed: (direction) {
-        log(band.name);
-        // TODO: llamar el borrado en el server
+        socketService.emit('delete-band', {'id': band.id});
       },
       child: ListTile(
         leading: CircleAvatar(
