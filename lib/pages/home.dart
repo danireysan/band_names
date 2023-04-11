@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:band_names/models/model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/socket_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +24,20 @@ class _HomePageState extends State<HomePage> {
   ];
   @override
   Widget build(BuildContext context) {
+    final socketService = Provider.of<SocketService>(context);
+
+    Widget isOnline() {
+      return (socketService.serverStatus == ServerStatus.online)
+          ? Icon(
+              Icons.check_circle,
+              color: Colors.blue[300],
+            )
+          : const Icon(
+              Icons.offline_bolt,
+              color: Colors.red,
+            );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -29,6 +46,9 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: Colors.white,
         elevation: 1,
+        actions: <Widget>[
+          _connectionChecker(isOnline),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: addNewBand,
@@ -39,6 +59,13 @@ class _HomePageState extends State<HomePage> {
         itemCount: bands.length,
         itemBuilder: (_, i) => _bandTile(bands[i]),
       ),
+    );
+  }
+
+  Container _connectionChecker(Widget Function() isOnline) {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      child: isOnline(),
     );
   }
 
