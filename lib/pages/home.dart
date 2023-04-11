@@ -16,12 +16,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Band> bands = [
-    Band(id: '1', name: 'Metallica', votes: 5),
-    Band(id: '2', name: 'Queen', votes: 1),
-    Band(id: '3', name: 'Héroes del Silencio', votes: 2),
-    Band(id: '4', name: 'Bon Jovi', votes: 5),
-  ];
+  List<Band> bands = [];
+  @override
+  void initState() {
+    super.initState();
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    socketService.socket.on('active-bands', (payload) {
+      bands = (payload as List).map((band) => Band.fromMap(band)).toList();
+
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    socketService.socket.off('active-bands');
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final socketService = Provider.of<SocketService>(context);
@@ -70,6 +83,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _bandTile(Band band) {
+    final socketService = Provider.of<SocketService>(context, listen: false);
+
     return Dismissible(
       key: Key(band.id),
       direction: DismissDirection.startToEnd,
@@ -103,7 +118,7 @@ class _HomePageState extends State<HomePage> {
           style: const TextStyle(fontSize: 20),
         ),
         onTap: () {
-          log(band.name);
+          socketService.socket.emit('vote-band', {'id': band.id});
         },
       ),
     );
@@ -166,12 +181,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   addBandToList(String name) {
-    log(name, name: 'addBandToList');
+    final socketService = Provider.of<SocketService>(context, listen: false);
     if (name.length > 1) {
-      bands.add(
-        Band(id: DateTime.now().toString(), name: name, votes: 0),
-      );
-      setState(() {});
+      socketService.emit('add-band', {'name': name});
     }
 
     Navigator.pop(context);
