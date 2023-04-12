@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  PieChart _showGraph() {
+  Widget _showGraph() {
     Map<String, double> dataMap = {};
 
     for (var band in bands) {
@@ -102,12 +102,15 @@ class _HomePageState extends State<HomePage> {
       Colors.red[200] as Color,
     ];
 
-    return PieChart(
-      chartType: ChartType.ring,
-      dataMap: dataMap.isEmpty ? {'No Data': 1.0} : dataMap,
-      colorList: colorList,
-      chartValuesOptions: const ChartValuesOptions(
-        decimalPlaces: 0,
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: PieChart(
+        chartType: ChartType.ring,
+        dataMap: dataMap.isEmpty ? {'No Data': 1.0} : dataMap,
+        colorList: colorList,
+        chartValuesOptions: const ChartValuesOptions(
+          decimalPlaces: 0,
+        ),
       ),
     );
   }
