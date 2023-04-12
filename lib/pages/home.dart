@@ -1,9 +1,9 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:band_names/models/model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pie_chart/pie_chart.dart';
 import 'package:provider/provider.dart';
 
 import '../services/socket_service.dart';
@@ -21,11 +21,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     final socketService = Provider.of<SocketService>(context, listen: false);
-    socketService.socket.on('active-bands', (payload) {
-      bands = (payload as List).map((band) => Band.fromMap(band)).toList();
+    socketService.socket.on('active-bands', _handleActiveBands);
+  }
 
-      setState(() {});
-    });
+  _handleActiveBands(payload) {
+    bands = (payload as List).map((band) => Band.fromMap(band)).toList();
+
+    setState(() {});
   }
 
   @override
@@ -68,9 +70,44 @@ class _HomePageState extends State<HomePage> {
         elevation: 1,
         child: const Icon(Icons.add),
       ),
-      body: ListView.builder(
-        itemCount: bands.length,
-        itemBuilder: (_, i) => _bandTile(bands[i]),
+      body: Column(
+        children: [
+          _showGraph(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: bands.length,
+              itemBuilder: (_, i) => _bandTile(bands[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PieChart _showGraph() {
+    Map<String, double> dataMap = {};
+
+    for (var band in bands) {
+      dataMap.putIfAbsent(band.name, () => band.votes.toDouble());
+    }
+
+    List<Color> colorList = [
+      Colors.blue[50] as Color,
+      Colors.blue[200] as Color,
+      Colors.pink[50] as Color,
+      Colors.pink[200] as Color,
+      Colors.yellow[50] as Color,
+      Colors.yellow[200] as Color,
+      Colors.red[50] as Color,
+      Colors.red[200] as Color,
+    ];
+
+    return PieChart(
+      chartType: ChartType.ring,
+      dataMap: dataMap,
+      colorList: colorList,
+      chartValuesOptions: const ChartValuesOptions(
+        decimalPlaces: 0,
       ),
     );
   }
@@ -103,9 +140,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      onDismissed: (direction) {
-        socketService.emit('delete-band', {'id': band.id});
-      },
+      onDismissed: (_) => socketService.emit('delete-band', {'id': band.id}),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Colors.blue[100],
@@ -116,9 +151,7 @@ class _HomePageState extends State<HomePage> {
           band.votes.toString(),
           style: const TextStyle(fontSize: 20),
         ),
-        onTap: () {
-          socketService.socket.emit('vote-band', {'id': band.id});
-        },
+        onTap: () => socketService.emit('vote-band', {'id': band.id}),
       ),
     );
   }
@@ -129,32 +162,7 @@ class _HomePageState extends State<HomePage> {
     if (Platform.isAndroid) {
       return showDialog(
         context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('New Band Name'),
-            content: TextField(
-              controller: bandController,
-              decoration: const InputDecoration(
-                hintText: 'Band Name',
-              ),
-            ),
-            actions: [
-              MaterialButton(
-                onPressed: () => addBandToList(bandController.text),
-                elevation: 5,
-                textColor: Colors.blue,
-                child: const Text('Add'),
-              )
-            ],
-          );
-        },
-      );
-    }
-
-    showCupertinoDialog(
-      context: context,
-      builder: (_) {
-        return CupertinoAlertDialog(
+        builder: (_) => AlertDialog(
           title: const Text('New Band Name'),
           content: TextField(
             controller: bandController,
@@ -163,19 +171,40 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           actions: [
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              child: const Text('Add'),
+            MaterialButton(
               onPressed: () => addBandToList(bandController.text),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Dismiss'),
-            ),
+              elevation: 5,
+              textColor: Colors.blue,
+              child: const Text('Add'),
+            )
           ],
-        );
-      },
+        ),
+      );
+    }
+
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('New Band Name'),
+        content: TextField(
+          controller: bandController,
+          decoration: const InputDecoration(
+            hintText: 'Band Name',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Add'),
+            onPressed: () => addBandToList(bandController.text),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Dismiss'),
+          ),
+        ],
+      ),
     );
   }
 
