@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
 
     return PieChart(
       chartType: ChartType.ring,
-      dataMap: dataMap,
+      dataMap: dataMap.isEmpty ? {'No Data': 1.0} : dataMap,
       colorList: colorList,
       chartValuesOptions: const ChartValuesOptions(
         decimalPlaces: 0,
